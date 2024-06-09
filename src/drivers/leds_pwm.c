@@ -44,6 +44,9 @@ uint32_t pwmleds[2][NUM_PWM_LED_CHIPS][NUM_LEDS_PER_CHIP];
 void pwm_leds_display_off(void){	LED_RING_ON();	}
 void pwm_leds_display_on(void){		LED_RING_OFF();	}
 
+// Private
+uint8_t check_button_led(uint8_t led_id); // ADDED CODE
+
 void init_pwm_leds(void)
 {
 	uint8_t led, chip;
@@ -105,10 +108,20 @@ void set_pwm_led(uint8_t led_id, const o_rgb_led *rgbled)
 	uint8_t red_led_element = get_red_led_element_id(led_id) % NUM_LEDS_PER_CHIP;
 	uint8_t chip_num = get_chip_num(led_id);
 	uint8_t buf = best_write_buf(chip_num);
+	uint8_t green_led_element, blue_led_element; // ADDED CODE
 
-	pwmleds[buf][chip_num][red_led_element] = r<<16;
-	pwmleds[buf][chip_num][red_led_element+1] = g<<16;
-	pwmleds[buf][chip_num][red_led_element+2] = b<<16;
+    if (check_button_led(led_id)) {				// ADDED CODE
+      green_led_element = red_led_element + 1;	// ADDED CODE
+      blue_led_element = red_led_element + 2;		// ADDED CODE
+    }												// ADDED CODE
+    else {										// ADDED CODE
+    green_led_element = red_led_element + 2;	// ADDED CODE
+    blue_led_element = red_led_element + 1;		// ADDED CODE
+    }												// ADDED CODE
+										
+	pwmleds[buf][chip_num][red_led_element] = r<<16;  		// ALTERED CODE
+	pwmleds[buf][chip_num][green_led_element] = g<<16;		// ALTERED CODE
+	pwmleds[buf][chip_num][blue_led_element] = b<<16;		// ALTERED CODE
 
 }
 
@@ -132,4 +145,11 @@ void set_single_pwm_led(uint8_t single_element_led_id, uint16_t brightness)
 
 	pwmleds[buf][chip_num][led_element] = b << 16;
 
+}
+
+uint8_t check_button_led(uint8_t led_id)	// ADDED CODE
+{											// ADDED CODE
+  return ((led_id == 33) ||					// ADDED CODE	|| is logical or
+          (led_id == 34) ||					// ADDED CODE			
+          (led_id == 39)) ? 1 : 0;			// ADDED CODE -  if above conditions return 1, else 0
 }
